@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body { padding: 12px; font-size: 16px; line-height: 1.6; }
+        pre { overflow: auto; padding: 10px; border-radius: 10px; }
+        code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+        /* 打字机光标 */
+        #cursor {
+          display: inline-block;
+          margin-left: 2px;
+          width: 8px;
+          animation: blink 1s steps(1) infinite;
+          user-select: none;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="./markdown-it.min.js"></script>
+<script>
+    const md = window.markdownit({ html: false, linkify: true, breaks: true })
+    const app = document.getElementById('app')
+
+    // 合并同一帧多次更新（Web侧再稳一层）
+    let pending = null
+    let scheduled = false
+
+    function render(text) {
+      const html = md.render(text)
+      // 末尾加光标
+      app.innerHTML = html + '<span id="cursor">|</span>'
+      // 需要的话可自动滚动到底部（可选）
+      // window.scrollTo(0, document.body.scrollHeight)
+    }
+
+    window.updateMarkdown = function(text) {
+      pending = text
+      if (scheduled) return
+      scheduled = true
+
+      requestAnimationFrame(() => {
+        scheduled = false
+        if (pending != null) render(pending)
+      })
+    }
+</script>
+</body>
+</html>
